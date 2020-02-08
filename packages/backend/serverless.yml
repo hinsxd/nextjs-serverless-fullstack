@@ -1,0 +1,49 @@
+service:
+  name: backend
+# app and org for use with dashboard.serverless.com
+app: wedu-backend
+org: hinsxd
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules:
+      forceInclude:
+        - pg
+  serverless-offline:
+    port: 4000
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-plugin-monorepo
+  - serverless-webpack
+  - serverless-offline
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs12.x
+  region: ap-northeast-1
+  apiGateway:
+    minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_NAME: ${env:DB_PREFIX}-${opt:stage, 'dev'}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    ACCESS_TOKEN_SECRET: ${env:ACCESS_TOKEN_SECRET}
+    REFRESH_TOKEN_SECRET: ${env:REFRESH_TOKEN_SECRET}
+
+functions:
+  graphql:
+    timeout: 20
+    handler: src/handler.graphql
+    events:
+      - http:
+          method: get
+          path: graphql
+          cors: true
+      - http:
+          method: post
+          path: graphql
+          cors: true
